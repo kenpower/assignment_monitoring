@@ -3,10 +3,10 @@ import { chromium } from 'playwright';
 export async function GET({ url }) {
     const startingPage = url.searchParams.get('startingPage');
     if (!startingPage) {
-        return {
-            status: 400,
-            body: { error: 'No starting page URL provided' },
-        };
+        return new Response(
+            JSON.stringify({ error: 'No starting page URL provided' }),
+            { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
     }
 
     // Initialize Playwright
@@ -32,10 +32,9 @@ export async function GET({ url }) {
 
     await browser.close();
 
-    return {
-        status: 200,
-        body: { results },
-    };
+    return new Response(
+        { status: 400, headers: { 'Content-Type': 'application/json' }, body: { results } }
+    );
 }
 
 // Function to analyze a page's content

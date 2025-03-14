@@ -4,7 +4,7 @@
     let analysisResults = [];
 
     async function fetchAnalysis() {
-        const response = await fetch(`/api/analyzeLinks?startingPage=${encodeURIComponent(startingPage)}`);
+        const response = await fetch(`/api/analyseLinks?startingPage=${encodeURIComponent(startingPage)}`);
         const data = await response.json();
         analysisResults = data.results;
     }
