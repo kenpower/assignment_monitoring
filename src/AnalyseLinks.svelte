@@ -20,7 +20,7 @@
     <input type="text" bind:value={startingPage} placeholder="Enter a starting URL" />
     <button on:click={fetchAnalysis}>Analyze</button>
 
-    {#if analysisResults.length > 0}
+    {#if (analysisResults ?? []).length > 0}
         <ul>
             {#each analysisResults as { link, visibleWords, images, tables }}
                 <li>
@@ -31,6 +31,8 @@
                 </li>
             {/each}
         </ul>
+    {:else}
+    {analysisResults}
     {/if}
 </main>
 

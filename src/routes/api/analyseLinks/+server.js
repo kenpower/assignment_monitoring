@@ -32,6 +32,7 @@ export async function GET({ url }) {
 
     await browser.close();
 
+    console.log("Results", results)
     return new Response(
         { status: 400, headers: { 'Content-Type': 'application/json' }, body: { results } }
     );
@@ -40,22 +41,45 @@ export async function GET({ url }) {
 // Function to analyze a page's content
 async function analyzePage(url, browser) {
     const page = await browser.newPage();
-    await page.goto(url);
+    let visibleText = 0;
+    let imageCount=0;
+    let tableCount=0;
+    try {
+        // Navigate and wait for the page to stabilize
+        console.log("loading page:", url)
+        await page.goto(url, { waitUntil: 'networkidle0' });
+        console.log("page loaded:", url)
 
-    // Count visible words
-    const visibleText = await page.evaluate(() => {
-        return document.body.innerText.trim().split(/\s+/).length;
-    });
+        // Count visible words
+        visibleText = await page.evaluate(() => {
+            // Ensure document.body exists before accessing innerText
+            //if (!document.body) return 0;
+            const text = document.body.innerText.trim();
+            return text ? text.split(/\s+/).length : 0;
+        });
+        console.log("visibletext", visibleText)
 
-    // Count images
-    const imageCount = await page.evaluate(() => {
-        return document.querySelectorAll('img').length;
-    });
+        // Count images
+        imageCount = await page.evaluate(() => {
+            return document.querySelectorAll('img').length;
+        });
 
-    // Count tables
-    const tableCount = await page.evaluate(() => {
-        return document.querySelectorAll('table').length;
-    });
+        // Count tables
+        tableCount = await page.evaluate(() => {
+            return document.querySelectorAll('table').length;
+        });
+
+
+        await page.close();
+
+    } catch (error) {
+        await page.close();
+        throw new Error(`Failed to analyze ${url}: ${error.message}`);
+    }
+
+
+
+
 
     return {
         visibleWords: visibleText,
