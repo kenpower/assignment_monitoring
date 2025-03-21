@@ -1,9 +1,11 @@
 <script>
     import { onMount } from "svelte";
-    let startingPage = "https://kenpower.com/"; // The starting page URL
+
     let analysisResults = [];
+    let listOfUrls = "";
 
     async function fetchAnalysis() {
+        // Get the starting URL from the input
         const response = await fetch(
             `/api/analyseLinks?startingPage=${encodeURIComponent(startingPage)}`,
         );
@@ -14,18 +16,26 @@
 
     // Trigger the analysis when the component mounts
     onMount(() => {
-        fetchAnalysis();
+        //fetchAnalysis();
+        listOfUrls = localStorage.getItem("listOfUrls");
     });
+
+    const newListOfUrls = (e) => {
+        //console.log("newListOfUrls", e.target.value);
+        localStorage.setItem("listOfUrls", e.target.value);
+    };
 </script>
 
 <main>
     <h1>Analyze Outbound Links</h1>
-    <input
+    <textarea
         type="text"
-        bind:value={startingPage}
+        bind:value={listOfUrls}
         placeholder="Enter a starting URL"
-    />
-    <button on:click={fetchAnalysis}>Analyze</button>
+        onchange={newListOfUrls}
+    ></textarea>
+
+    <button onclick={fetchAnalysis}>Analyze</button>
 
     {#if (analysisResults ?? []).length > 0}
         <ul>
@@ -52,6 +62,11 @@
     input,
     button {
         margin: 10px 0;
+    }
+    textarea {
+        width: 100%;
+        height: 16rem;
+        margin-bottom: 20px;
     }
     ul {
         list-style-type: none;
