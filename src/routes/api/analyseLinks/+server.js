@@ -14,27 +14,30 @@ export async function GET({ url }) {
     const page = await browser.newPage();
     await page.goto(startingPage);
 
-    // Gather distinct outbound links
+    //Runs the provided function inside the browser's context (on the loaded web page).
     const outboundLinks = await page.evaluate(() => {
-        const links = Array.from(document.querySelectorAll('a'));
-        return links
+        const links = Array
+            .from(document.querySelectorAll('a'))
             .map(link => link.href)
             .filter(href => href.startsWith('http') && !href.includes(window.location.hostname));
+
+        const uniqueLinks = new Set(links);
+        return [...uniqueLinks];
     });
 
-    const results = [];
+    const results = await Promise.all(
+        outboundLinks.map((link) =>
+            analyzePage(link, browser)
+                .then(analysis => ({ link, ...analysis })))
+    );
 
-    // Analyze each outbound link
-    for (const link of outboundLinks) {
-        const analysis = await analyzePage(link, browser);
-        results.push({ link, ...analysis });
-    }
 
     await browser.close();
 
     console.log("Results", results)
     return new Response(
-        { status: 400, headers: { 'Content-Type': 'application/json' }, body: { results } }
+        JSON.stringify(results),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
 }
 
@@ -42,8 +45,8 @@ export async function GET({ url }) {
 async function analyzePage(url, browser) {
     const page = await browser.newPage();
     let visibleText = 0;
-    let imageCount=0;
-    let tableCount=0;
+    let imageCount = 0;
+    let tableCount = 0;
     try {
         // Navigate and wait for the page to stabilize
         console.log("loading page:", url)
